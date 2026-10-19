@@ -13,7 +13,10 @@ location:
   country: Nowhere
   coordinates: null
 media:
-  images: []
+  images:
+    - src: media/2026/sample-fixture-gradient.jpg
+      alt: "A generated colour gradient used as a sample fixture image"
+      caption: "Sample fixture image, not a photograph"
 notes: null
 ---
 Placeholder poem

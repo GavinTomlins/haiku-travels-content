@@ -60,13 +60,18 @@ before committing. Phone photos carry GPS location and time. The
 validator rejects any JPEG that still contains an EXIF segment.
 
 ```
-# macOS, one-off: resize and strip with sips
+# macOS: resize with sips, then strip the metadata sips leaves behind
 sips -Z 1600 original.jpg --out media/2026/name.jpg
-exiftool -all= -overwrite_original media/2026/name.jpg   # if exiftool is installed
+node scripts/strip-metadata.mjs media/2026/name.jpg
+npm run validate
 ```
+
+`scripts/strip-metadata.mjs` needs no dependencies and removes EXIF, XMP,
+IPTC and comment segments while keeping the colour profile.
 
 ## Sample fixtures
 
 The poems tagged `fixture` and titled "Sample fixture" are placeholders
-to prove the pipeline. They are not real poems or events. Delete them
-before launch.
+to prove the pipeline, and `media/2026/sample-fixture-gradient.jpg` is a
+generated colour gradient, not a photograph. None of it is real content.
+Delete the fixtures before launch.
