@@ -1,0 +1,20 @@
+{
+  "name": "haiku-travels-content",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Poems, metadata and owned media for haikutravels.xyz",
+  "type": "module",
+  "scripts": {
+    "validate": "node scripts/validate.mjs"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.3.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

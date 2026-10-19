@@ -1,0 +1,34 @@
+name: Validate and publish
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run validate
+
+  publish:
+    # Tell the site repository to rebuild from exactly this commit.
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch content-updated to GavinTomlins/haiku-travels
+        env:
+          GH_TOKEN: ${{ secrets.SITE_DISPATCH_TOKEN }}
+        run: |
+          printf '{"event_type":"content-updated","client_payload":{"sha":"%s","ref":"%s"}}' "$GITHUB_SHA" "$GITHUB_REF_NAME" \
+            | gh api --method POST repos/GavinTomlins/haiku-travels/dispatches --input -
