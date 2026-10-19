@@ -71,7 +71,6 @@ IPTC and comment segments while keeping the colour profile.
 
 ## Sample fixtures
 
-The poems tagged `fixture` and titled "Sample fixture" are placeholders
-to prove the pipeline, and `media/2026/sample-fixture-gradient.jpg` is a
-generated colour gradient, not a photograph. None of it is real content.
-Delete the fixtures before launch.
+One draft poem tagged `fixture` and titled "Sample fixture" is kept
+permanently. It never appears on the site; its only job is to give the
+site's leak check something to catch. Leave it as a draft.
