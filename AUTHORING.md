@@ -46,6 +46,7 @@ npm run validate
 | `author` | yes | `Gavin Tomlins`. |
 | `status` | yes | `draft` or `published`. |
 | `created`, `updated` | no | `YYYY-MM-DD`. |
+| `order` | no | Whole number from 1. Only matters when several poems share a `date`: lower numbers come first, nearer the front of the book. |
 | `tags` | no | Free-form list, lower case. |
 | `location` | no | `name`, `country`, and optional `coordinates` (`lat`, `lng`). Only `name` and `country` are ever published. |
 | `media.images` | no | List of `{ src, alt, caption }`. `src` is relative to the repo root, e.g. `media/2026/kyoto-lantern.jpg`. |

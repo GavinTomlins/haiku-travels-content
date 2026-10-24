@@ -3,6 +3,7 @@ id: ht-20261020-a-quiet-hello
 title: A Quiet Hello
 date: 2026-10-20
 created: 2026-10-20
+order: 1
 type: travel
 tags: [road, caravans, wave]
 status: published

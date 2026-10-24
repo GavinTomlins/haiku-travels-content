@@ -3,6 +3,7 @@ id: ht-20261020-steam-rises
 title: Steam Rises
 date: 2026-10-20
 created: 2026-10-20
+order: 2
 type: food
 tags: [noodles, platform, japan]
 status: published

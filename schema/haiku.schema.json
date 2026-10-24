@@ -24,6 +24,7 @@
     "status": { "type": "string", "enum": ["draft", "published"] },
     "author": { "type": "string", "minLength": 1 },
     "license": { "type": "string", "const": "CC-BY-NC-ND-4.0" },
+    "order": { "type": "integer", "minimum": 1, "description": "Position among poems that share the same date. Lower numbers come first, nearer the front of the book." },
     "language": { "type": "string", "pattern": "^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$", "default": "en" },
     "location": {
       "type": ["object", "null"],
