@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 // Removes EXIF, XMP, IPTC/Photoshop and comment segments from JPEG files in
 // place, keeping JFIF, ICC colour profiles and the image data untouched.
+// Most images want scripts/stamp-metadata.mjs instead, which strips and then
+// writes the copyright notice back.
 // MIT licensed. Usage: node scripts/strip-metadata.mjs media/2026/photo.jpg [...]
 import fs from "node:fs";
+import { fileURLToPath } from "node:url";
 
 const DROP = new Set([0xe1, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xeb, 0xec, 0xed, 0xef, 0xfe]);
 // Kept: E0 (JFIF), E2 (ICC profile), EE (Adobe colour transform), and all non-APP segments.
 
-function strip(buf) {
+export function strip(buf) {
   if (buf[0] !== 0xff || buf[1] !== 0xd8) throw new Error("not a JPEG");
   const parts = [buf.subarray(0, 2)];
   let i = 2;
@@ -25,20 +28,22 @@ function strip(buf) {
   return { out: Buffer.concat(parts), removed };
 }
 
-const files = process.argv.slice(2);
-if (files.length === 0) {
-  console.error("usage: node scripts/strip-metadata.mjs <file.jpg> [...]");
-  process.exit(2);
-}
-let failed = false;
-for (const f of files) {
-  try {
-    const { out, removed } = strip(fs.readFileSync(f));
-    fs.writeFileSync(f, out);
-    console.log(`${f}: removed ${removed} metadata segment(s)`);
-  } catch (e) {
-    failed = true;
-    console.error(`${f}: ${e.message}`);
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const files = process.argv.slice(2);
+  if (files.length === 0) {
+    console.error("usage: node scripts/strip-metadata.mjs <file.jpg> [...]");
+    process.exit(2);
   }
+  let failed = false;
+  for (const f of files) {
+    try {
+      const { out, removed } = strip(fs.readFileSync(f));
+      fs.writeFileSync(f, out);
+      console.log(`${f}: removed ${removed} metadata segment(s)`);
+    } catch (e) {
+      failed = true;
+      console.error(`${f}: ${e.message}`);
+    }
+  }
+  process.exit(failed ? 1 : 0);
 }
-process.exit(failed ? 1 : 0);

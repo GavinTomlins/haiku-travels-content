@@ -12,7 +12,7 @@ license: CC-BY-NC-ND-4.0
 location: null
 media:
   images:
-    - src: media/2026/noodles-platform.jpg
+    - src: media/2026/HaikuTravels-noodles-platform.jpg
       alt: "Pencil drawing of a steaming bowl of ramen with an egg and chopsticks on a counter, a railway platform with a waiting train and commuters stretching away behind it"
       caption: null
 notes: null

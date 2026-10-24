@@ -9,6 +9,7 @@ import matter from "gray-matter";
 import yaml from "js-yaml";
 import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
+import { AUTHOR, FILE_PREFIX, LICENCE_URL, SITE_NAME, noticeAscii, notice, yearFor } from "./stamp-metadata.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const haikusDir = path.join(root, "haikus");
@@ -39,21 +40,69 @@ function isRealDate(s) {
 }
 
 // Returns true if a JPEG contains an EXIF (APP1 "Exif"), XMP (APP1 "http://ns.adobe.com/xap/") or IPTC (APP13) segment.
-function jpegHasMetadata(buf) {
-  if (buf.length < 4 || buf[0] !== 0xff || buf[1] !== 0xd8) return false;
+// Every JPEG must carry the copyright stamp written by scripts/stamp-metadata.mjs and
+// nothing else: an EXIF block holding only description, artist and copyright, plus the
+// XMP rights packet. Anything more (GPS, timestamps, IPTC) is an error.
+const EXIF_ALLOWED = new Set([0x010e, 0x013b, 0x8298]);
+
+function readIfd0Ascii(tiff) {
+  const le = tiff.toString("latin1", 0, 2) === "II";
+  const u16 = (o) => (le ? tiff.readUInt16LE(o) : tiff.readUInt16BE(o));
+  const u32 = (o) => (le ? tiff.readUInt32LE(o) : tiff.readUInt32BE(o));
+  const ifd = u32(4);
+  const n = u16(ifd);
+  const tags = new Map();
+  for (let i = 0; i < n; i++) {
+    const e = ifd + 2 + i * 12;
+    const tag = u16(e), type = u16(e + 2), count = u32(e + 4);
+    let value = null;
+    if (type === 2) {
+      const off = count <= 4 ? e + 8 : u32(e + 8);
+      value = tiff.toString("latin1", off, off + count).replace(/\0+$/, "");
+    }
+    tags.set(tag, value);
+  }
+  return tags;
+}
+
+function checkJpegStamp(buf, file) {
+  if (buf.length < 4 || buf[0] !== 0xff || buf[1] !== 0xd8) return "is not a JPEG";
+  const year = yearFor(file);
+  let exif = null, xmp = null;
   let i = 2;
   while (i + 4 <= buf.length && buf[i] === 0xff) {
     const marker = buf[i + 1];
-    if (marker === 0xda || marker === 0xd9) break; // start of scan or end of image
+    if (marker === 0xda || marker === 0xd9) break;
     const len = buf.readUInt16BE(i + 2);
+    const payload = buf.subarray(i + 4, i + 2 + len);
     if (marker === 0xe1) {
-      const head = buf.subarray(i + 4, i + 4 + 29).toString("latin1");
-      if (head.startsWith("Exif") || head.startsWith("http://ns.adobe.com/xap/")) return true;
+      const head = payload.toString("latin1", 0, 29);
+      if (head.startsWith("Exif\0\0")) exif = payload.subarray(6);
+      else if (head.startsWith("http://ns.adobe.com/xap/")) xmp = payload.subarray(29).toString("utf8");
     }
-    if (marker === 0xed) return true; // APP13, Photoshop/IPTC
+    if (marker === 0xed) return "carries IPTC/Photoshop metadata";
+    if (marker === 0xfe) return "carries a comment segment";
     i += 2 + len;
   }
-  return false;
+  if (!exif || !xmp) return `is missing the copyright stamp; run node scripts/stamp-metadata.mjs ${file}`;
+  const tags = readIfd0Ascii(exif);
+  for (const tag of tags.keys()) if (!EXIF_ALLOWED.has(tag)) return `carries EXIF tag 0x${tag.toString(16)} beyond the copyright stamp; re-run node scripts/stamp-metadata.mjs ${file}`;
+  if (tags.get(0x8298) !== noticeAscii(year)) return `EXIF copyright is "${tags.get(0x8298)}", expected "${noticeAscii(year)}"`;
+  if (tags.get(0x013b) !== AUTHOR) return `EXIF artist is "${tags.get(0x013b)}", expected "${AUTHOR}"`;
+  if (!xmp.includes(notice(year))) return `XMP rights do not say "${notice(year)}"`;
+  if (!xmp.includes(LICENCE_URL)) return `XMP web statement does not link to ${LICENCE_URL}`;
+  if (!xmp.includes(`<photoshop:Credit>${SITE_NAME}</photoshop:Credit>`)) return `XMP credit is not "${SITE_NAME}"`;
+  return null;
+}
+
+// Every image under media/, referenced or not, is named with the site prefix and stamped.
+function walkMedia(dir) {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((d) => {
+    const p = path.join(dir, d.name);
+    if (d.isDirectory()) return walkMedia(p);
+    return d.isFile() && /\.(jpe?g|png|webp)$/i.test(d.name) ? [p] : [];
+  });
 }
 
 const files = walk(haikusDir);
@@ -116,12 +165,26 @@ for (const file of files) {
       fail(`image ${img.src} does not exist`);
       continue;
     }
-    const buf = fs.readFileSync(p);
-    if (/\.jpe?g$/i.test(img.src) && jpegHasMetadata(buf)) {
-      fail(`image ${img.src} still carries EXIF/XMP/IPTC metadata; strip it before committing`);
-    }
-    if (buf.length > 1_500_000) warnings.push(`${rel}: image ${img.src} is ${(buf.length / 1e6).toFixed(1)} MB; resize to 1600px`);
   }
+}
+
+const mediaFiles = walkMedia(path.join(root, "media"));
+const seenNames = new Map();
+for (const p of mediaFiles) {
+  const rel = path.relative(root, p);
+  const name = path.basename(p);
+  if (!name.startsWith(FILE_PREFIX)) errors.push(`${rel}: image file names start with ${FILE_PREFIX}`);
+  const stem = name.replace(/\.[^.]+$/, "");
+  if (seenNames.has(stem)) errors.push(`${rel}: image name ${stem} is also used by ${seenNames.get(stem)}; names must be unique across media/`);
+  seenNames.set(stem, rel);
+  const buf = fs.readFileSync(p);
+  if (/\.jpe?g$/i.test(name)) {
+    const problem = checkJpegStamp(buf, rel);
+    if (problem) errors.push(`${rel}: ${problem}`);
+  } else {
+    warnings.push(`${rel}: not a JPEG, so it carries no copyright stamp; convert it with sips and stamp it`);
+  }
+  if (buf.length > 1_500_000) warnings.push(`${rel}: ${(buf.length / 1e6).toFixed(1)} MB; resize to 1600px`);
 }
 
 for (const w of warnings) console.warn(`warning: ${w}`);
@@ -130,4 +193,4 @@ if (errors.length) {
   console.error(`\n${errors.length} error(s) in ${files.length} file(s).`);
   process.exit(1);
 }
-console.log(`OK: ${files.length} poem(s) valid, ${seenIds.size} unique id(s).`);
+console.log(`OK: ${files.length} poem(s) valid, ${seenIds.size} unique id(s), ${mediaFiles.length} image(s) named and stamped.`);

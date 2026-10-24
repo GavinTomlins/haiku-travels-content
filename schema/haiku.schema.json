@@ -55,7 +55,7 @@
             "additionalProperties": false,
             "required": ["src", "alt"],
             "properties": {
-              "src": { "type": "string", "pattern": "^media/[0-9]{4}/[A-Za-z0-9._-]+\\.(jpe?g|png|webp)$" },
+              "src": { "type": "string", "pattern": "^media/[0-9]{4}/HaikuTravels-[A-Za-z0-9._-]+\\.(jpe?g|png|webp)$" },
               "alt": { "type": "string", "minLength": 1, "maxLength": 300 },
               "caption": { "type": ["string", "null"], "maxLength": 300 },
               "credit": { "type": ["string", "null"], "maxLength": 200 }

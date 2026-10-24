@@ -12,7 +12,7 @@ license: CC-BY-NC-ND-4.0
 location: null
 media:
   images:
-    - src: media/2026/caravan-wave.jpg
+    - src: media/2026/HaikuTravels-caravan-wave.jpg
       alt: "Pencil sketch from the driver's seat of a car on an outback highway, the driver's hand raised from the wheel in a wave to an oncoming four-wheel drive towing a caravan"
       caption: null
 notes: null

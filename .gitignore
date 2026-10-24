@@ -1,2 +1,4 @@
 node_modules/
 .DS_Store
+# Raw sketches and photos before resizing and stamping; never committed.
+originals/

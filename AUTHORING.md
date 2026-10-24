@@ -6,7 +6,7 @@ Working notes for adding poems and photographs to this repository.
 
 ```
 haikus/YYYY/YYYY-MM-DD-slug.md   one poem per file, front matter + three lines
-media/YYYY/<name>.jpg            photographs, max 1600px on the long side, no EXIF
+media/YYYY/HaikuTravels-<name>.jpg  sketches and photographs, max 1600px, copyright-stamped
 schema/haiku.schema.json         the front matter contract
 scripts/validate.mjs             checks every poem against the schema and extra rules
 ```
@@ -54,21 +54,26 @@ npm run validate
 | `language` | no | BCP 47 code, default `en`. |
 | `collections` | no | Free-form list for grouping, e.g. a trip name. |
 
-### Photographs
+### Sketches and photographs
 
-Resize to at most 1600px on the long side and strip all metadata
-before committing. Phone photos carry GPS location and time. The
-validator rejects any JPEG that still contains an EXIF segment.
+Drop raw files in `originals/` (ignored by git). Every image that is
+committed is named `HaikuTravels-<name>.jpg`, at most 1600px on the long
+side, and stamped: all metadata stripped (phone photos carry GPS location
+and time), then the copyright written back as EXIF and XMP so a copy taken
+from the site still says "© Gavin Tomlins <year> - Haiku Travels" and links
+to the licence page. The validator rejects unstamped, unprefixed or
+duplicate names.
 
 ```
-# macOS: resize with sips, then strip the metadata sips leaves behind
-sips -Z 1600 original.jpg --out media/2026/name.jpg
-node scripts/strip-metadata.mjs media/2026/name.jpg
+# macOS: resize (and convert a PNG) with sips, then stamp
+sips -s format jpeg -s formatOptions 88 -Z 1600 originals/sketch.png --out media/2026/HaikuTravels-name.jpg
+node scripts/stamp-metadata.mjs media/2026/HaikuTravels-name.jpg
 npm run validate
 ```
 
-`scripts/strip-metadata.mjs` needs no dependencies and removes EXIF, XMP,
-IPTC and comment segments while keeping the colour profile.
+`scripts/stamp-metadata.mjs` needs no dependencies. The year in the notice
+is the media folder's. `scripts/strip-metadata.mjs` only strips, for the
+rare image that must carry no notice.
 
 ## Sample fixtures
 

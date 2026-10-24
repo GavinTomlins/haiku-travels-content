@@ -25,9 +25,10 @@ Commercial use, adaptations and translations require prior written
 permission and may be licensed separately, including on a fee or royalty
 basis. Enquiries: **gavintomlins@gmail.com**.
 
-The licence covers the original poems only. Photographs under `media/`
-are copyright Gavin Tomlins unless a file's metadata says otherwise, and
-are not covered by the CC licence unless stated. The validation scripts
+The licence covers the original poems only. Sketches and photographs under
+`media/` are copyright Gavin Tomlins, all rights reserved, and are not
+covered by the CC licence. Each image carries that notice in its EXIF and
+XMP metadata, with a link to <https://haikutravels.xyz/about/#licence>. The validation scripts
 and schema in this repository are MIT licensed (see `scripts/`).
 
 How poems are written, named and validated is described in [AUTHORING.md](AUTHORING.md).
