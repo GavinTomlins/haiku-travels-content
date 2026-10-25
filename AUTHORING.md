@@ -1,4 +1,4 @@
-# Authoring notes
+| `haiku-modern` | Three lines (5-7-5); no season word or cut required. |# Authoring notes
 
 Working notes for adding poems and photographs to this repository.
 
