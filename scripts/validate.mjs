@@ -117,6 +117,9 @@ function parseBody(content) {
   return { prose: proseParagraphs, stanzas, lines: stanzas.flat() };
 }
 
+// Words that must not appear anywhere in a poem file. Attribution belongs to the author alone.
+const AI_NAMES = /\b(openai|open ai|anthropic|claude|gpt|gemini|google image|imagen|chatgpt|dall-?e|midjourney|stable diffusion|kimi|moonshot|mistral|llama|copilot|sora|drafted with|sketch by|generated with|co-authored-by)\b/i;
+
 // What each form's body should look like. Line counts are warnings (a poem may
 // break the pattern on purpose); a missing structure is an error.
 function checkBody(form, content, rel) {
@@ -211,6 +214,12 @@ for (const file of files) {
   }
 
   checkBody(fm.form ?? "haiku-traditional", parsed.content, rel);
+
+  // Nothing in this repository names an AI service or model: not the notes, not alt text, not the poem.
+  for (const [where, text] of [["front matter", parsed.matter], ["body", parsed.content]]) {
+    const hit = String(text).split(/\r?\n/).find((l) => AI_NAMES.test(l));
+    if (hit) fail(`${where} names an AI service or model, which this repository never does: "${hit.trim().slice(0, 100)}"`);
+  }
 
   for (const img of fm.media?.images ?? []) {
     if (typeof img.src !== "string") continue;
