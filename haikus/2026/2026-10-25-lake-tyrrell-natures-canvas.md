@@ -20,5 +20,5 @@ media:
 notes: null
 ---
 Salt lake, far from home
-Nature paints the afternoon sky
+Dusk sky painted by nature
 Mirrored beauty glows
