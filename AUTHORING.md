@@ -1,4 +1,4 @@
-| `haiku-modern` | Three lines (5-7-5); no season word or cut required. |# Authoring notes
+# Authoring notes
 
 Working notes for adding poems and photographs to this repository.
 
@@ -70,7 +70,7 @@ missing structure is an error.
 | Form | Body |
 |---|---|
 | `haiku-traditional`, `senryu` | Three lines (5-7-5). |
-| `haiku-modern` | One to four lines, free. |
+| `haiku-modern` | Three lines (5-7-5); no season word or cut required. |
 | `tanka` | Five lines (5-7-5-7-7). |
 | `haibun` | Prose paragraphs, then a line holding only `---`, then a three-line haiku. |
 | `renku` | Stanzas separated by one blank line, alternating three lines and two lines. |

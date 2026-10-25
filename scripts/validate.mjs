@@ -1,6 +1,4 @@
-    case "haiku-modern":
-      if (lines.length !== 3) warn(`haiku-modern has ${lines.length} lines, not 3`);
-      break;#!/usr/bin/env node
+#!/usr/bin/env node
 // Validates every poem under haikus/ against schema/haiku.schema.json and
 // the rules the schema cannot express. Exit code 1 on any error.
 // MIT licensed. Run from the repository root: node scripts/validate.mjs
@@ -133,7 +131,7 @@ function checkBody(form, content, rel) {
       if (lines.length !== 3) warn(`${form} has ${lines.length} lines, not 3`);
       break;
     case "haiku-modern":
-      if (lines.length < 1 || lines.length > 4) warn(`haiku-modern has ${lines.length} lines; expected 1 to 4`);
+      if (lines.length !== 3) warn(`haiku-modern has ${lines.length} lines, not 3`);
       break;
     case "tanka":
       if (lines.length !== 5) warn(`tanka has ${lines.length} lines, not 5`);
