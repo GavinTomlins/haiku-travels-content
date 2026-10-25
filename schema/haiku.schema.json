@@ -16,13 +16,23 @@
     "created": { "type": "string", "format": "date" },
     "updated": { "type": "string", "format": "date" },
     "type": { "type": "string", "enum": ["travel", "food", "people", "nature", "everyday"] },
+    "form": {
+      "type": "string",
+      "enum": ["haiku-traditional", "haiku-modern", "senryu", "tanka", "haibun", "renku"],
+      "default": "haiku-traditional",
+      "description": "Poetic form. Absent means haiku-traditional. Sets the body layout the validator expects."
+    },
     "tags": {
       "type": "array",
       "uniqueItems": true,
       "items": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
     },
     "status": { "type": "string", "enum": ["draft", "published"] },
-    "author": { "type": "string", "minLength": 1 },
+    "author": {
+      "type": "string",
+      "enum": ["Gavin Tomlins", "Gavin & Natasha Tomlins", "Natasha Tomlins"],
+      "description": "Who the poem is attributed to. The site derives the GT, GNT or NT mark from this name."
+    },
     "license": { "type": "string", "const": "CC-BY-NC-ND-4.0" },
     "order": { "type": "integer", "minimum": 1, "description": "Position among poems that share the same date. Lower numbers come first, nearer the front of the book." },
     "language": { "type": "string", "pattern": "^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$", "default": "en" },

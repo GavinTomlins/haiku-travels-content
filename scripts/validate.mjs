@@ -95,6 +95,63 @@ function checkJpegStamp(buf, file) {
   return null;
 }
 
+// The poem body, split the way the site reads it: stanzas are separated by one or
+// more blank lines; a haibun puts its prose first, then a line holding only "---",
+// then the verse. gray-matter only treats the leading block as front matter, so a
+// later "---" is plain content.
+function parseBody(content) {
+  const lines = content.split(/\r?\n/).map((l) => l.trimEnd());
+  const cut = lines.findIndex((l) => l.trim() === "---");
+  const prose = cut === -1 ? [] : lines.slice(0, cut);
+  const verse = cut === -1 ? lines : lines.slice(cut + 1);
+  const stanzas = [];
+  let current = [];
+  for (const l of verse) {
+    if (l.trim() === "") {
+      if (current.length) stanzas.push(current);
+      current = [];
+    } else current.push(l);
+  }
+  if (current.length) stanzas.push(current);
+  const proseParagraphs = prose.join("\n").split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+  return { prose: proseParagraphs, stanzas, lines: stanzas.flat() };
+}
+
+// What each form's body should look like. Line counts are warnings (a poem may
+// break the pattern on purpose); a missing structure is an error.
+function checkBody(form, content, rel) {
+  const { prose, stanzas, lines } = parseBody(content);
+  const warn = (msg) => warnings.push(`${rel}: ${msg}`);
+  const fail = (msg) => errors.push(`${rel}: ${msg}`);
+  if (lines.length === 0) return fail("poem body is empty");
+  if (form !== "haibun" && prose.length) return fail(`a ${form} has no prose section; remove the "---" line or set form: haibun`);
+  switch (form) {
+    case "haiku-traditional":
+    case "senryu":
+      if (lines.length !== 3) warn(`${form} has ${lines.length} lines, not 3`);
+      break;
+    case "haiku-modern":
+      if (lines.length < 1 || lines.length > 4) warn(`haiku-modern has ${lines.length} lines; expected 1 to 4`);
+      break;
+    case "tanka":
+      if (lines.length !== 5) warn(`tanka has ${lines.length} lines, not 5`);
+      break;
+    case "haibun":
+      if (prose.length === 0) return fail('haibun needs prose, then a line holding only "---", then the verse');
+      if (lines.length !== 3) warn(`haibun verse has ${lines.length} lines, not 3`);
+      break;
+    case "renku":
+      if (stanzas.length < 2) return fail("renku needs at least two stanzas separated by a blank line");
+      stanzas.forEach((s, i) => {
+        const want = i % 2 === 0 ? 3 : 2;
+        if (s.length !== want) warn(`renku stanza ${i + 1} has ${s.length} lines, not ${want}`);
+      });
+      break;
+    default:
+      break; // the schema has already reported an unknown form
+  }
+}
+
 // Every image under media/, referenced or not, is named with the site prefix and stamped.
 function walkMedia(dir) {
   if (!fs.existsSync(dir)) return [];
@@ -153,10 +210,7 @@ for (const file of files) {
     seenIds.set(fm.id, rel);
   }
 
-  const lines = parsed.content.split(/\r?\n/).map((l) => l.trimEnd()).filter((l, i, a) => !(l === "" && (i === 0 || i === a.length - 1)));
-  const nonEmpty = lines.filter((l) => l.trim() !== "");
-  if (nonEmpty.length === 0) fail("poem body is empty");
-  else if (nonEmpty.length !== 3) warnings.push(`${rel}: poem has ${nonEmpty.length} lines, not 3`);
+  checkBody(fm.form ?? "haiku-traditional", parsed.content, rel);
 
   for (const img of fm.media?.images ?? []) {
     if (typeof img.src !== "string") continue;
