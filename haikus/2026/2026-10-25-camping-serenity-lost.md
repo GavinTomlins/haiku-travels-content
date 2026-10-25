@@ -6,7 +6,7 @@ created: 2026-10-25
 order: 10
 type: travel
 form: haiku-modern
-tags: []
+tags: [camping]
 status: published
 author: Gavin Tomlins
 license: CC-BY-NC-ND-4.0
